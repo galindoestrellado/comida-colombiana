@@ -1,11 +1,11 @@
 import { Clock, MapPin, MessageCircle } from "lucide-react";
 
-export function Header() {
+export function Header({ settings }) {
   return (
     <header className="hero">
       <div className="hero__badge">🇨🇴 Comida casera por encargo</div>
 
-      <h1>Cocina Colombiana Ale & Xavi</h1>
+      <h1>{settings.business_name}</h1>
 
       <p>
         Platos colombianos preparados con cariño para recoger. Haz tu pedido,
@@ -19,7 +19,7 @@ export function Header() {
         </span>
         <span>
           <MapPin size={18} />
-          Recogida en Castelldefels
+          Recogida en {settings.pickup_location}
         </span>
         <span>
           <MessageCircle size={18} />

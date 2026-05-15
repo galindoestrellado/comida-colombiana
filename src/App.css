@@ -1111,3 +1111,49 @@
   }
 }
 
+.settings-card {
+  background: white;
+  border-radius: 26px;
+  padding: 24px;
+  box-shadow: 0 18px 45px rgba(48, 28, 13, 0.1);
+}
+
+.settings-card h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+}
+
+.settings-card p {
+  margin: 0 0 22px;
+  color: #6b625b;
+  line-height: 1.5;
+}
+
+.settings-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 14px;
+  font-weight: 800;
+  color: #3b2a22;
+}
+
+.settings-card input,
+.settings-card textarea {
+  width: 100%;
+  border: 1px solid #e1d4c8;
+  background: #fffaf5;
+  border-radius: 16px;
+  padding: 13px 14px;
+  font: inherit;
+}
+
+.settings-card textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.settings-save-button {
+  width: auto;
+  padding-inline: 20px;
+}

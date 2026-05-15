@@ -9,6 +9,7 @@ import { AdminLogin } from "./components/AdminLogin";
 import { MobileCartBar } from "./components/MobileCartBar";
 import { getCurrentSession } from "./lib/authApi";
 import { getProducts } from "./lib/productsApi";
+import { getBusinessSettings } from "./lib/settingsApi";
 import "./App.css";
 
 function App() {
@@ -22,8 +23,28 @@ function App() {
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [productsError, setProductsError] = useState("");
 
+  const [settings, setSettings] = useState(null);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [settingsError, setSettingsError] = useState("");
+
   const [adminSession, setAdminSession] = useState(null);
   const [isCheckingSession, setIsCheckingSession] = useState(isAdminRoute);
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const data = await getBusinessSettings();
+        setSettings(data);
+      } catch (error) {
+        console.error("Error cargando settings:", error);
+        setSettingsError("No se ha podido cargar la configuración del negocio.");
+      } finally {
+        setIsLoadingSettings(false);
+      }
+    }
+
+    loadSettings();
+  }, []);
 
   useEffect(() => {
     async function loadProducts() {
@@ -131,11 +152,33 @@ function App() {
     navigateTo("/");
   }
 
+  if (isLoadingSettings) {
+    return (
+      <main className="app">
+        <div className="admin-message admin-loading">
+          Cargando configuración...
+        </div>
+      </main>
+    );
+  }
+
+  if (settingsError || !settings) {
+    return (
+      <main className="app">
+        <div className="form-error admin-loading">
+          {settingsError || "No se ha podido cargar la configuración."}
+        </div>
+      </main>
+    );
+  }
+
   if (step === "admin") {
     if (isCheckingSession) {
       return (
         <main className="app">
-          <div className="admin-message admin-loading">Comprobando sesión...</div>
+          <div className="admin-message admin-loading">
+            Comprobando sesión...
+          </div>
         </main>
       );
     }
@@ -157,6 +200,8 @@ function App() {
     return (
       <main className="app">
         <AdminPanel
+          settings={settings}
+          onSettingsUpdated={setSettings}
           onBackToShop={() => navigateTo("/")}
           onLoggedOut={() => {
             setAdminSession(null);
@@ -173,6 +218,7 @@ function App() {
         <CheckoutForm
           cart={cart}
           total={total}
+          settings={settings}
           onBack={() => setStep("menu")}
           onOrderCreated={handleOrderCreated}
         />
@@ -183,24 +229,25 @@ function App() {
   if (step === "success" && lastOrder) {
     return (
       <main className="app">
-        <OrderSuccess order={lastOrder} onNewOrder={startNewOrder} />
+        <OrderSuccess
+          order={lastOrder}
+          settings={settings}
+          onNewOrder={startNewOrder}
+        />
       </main>
     );
   }
 
   return (
     <main className="app">
-      <Header />
+      <Header settings={settings} />
 
       <section className="layout">
         <div className="menu-area">
           <div className="section-heading">
             <span>Menú disponible</span>
             <h2>Elige tus platos colombianos</h2>
-            <p>
-              Platos caseros preparados bajo pedido. Recomendamos reservar con
-              antelación para asegurar disponibilidad.
-            </p>
+            <p>{settings.order_notice}</p>
           </div>
 
           {isLoadingProducts && (
@@ -238,6 +285,7 @@ function App() {
           onClear={clearCart}
           onGoToCheckout={() => setStep("checkout")}
         />
+
         <MobileCartBar
           cart={cart}
           total={total}

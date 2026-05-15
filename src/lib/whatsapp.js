@@ -1,12 +1,5 @@
 import { formatCurrency } from "./formatCurrency";
 
-const BUSINESS_PHONE = "34645031323";
-const BIZUM_PHONE = "645 031 323";
-
-export const bizumConfig = {
-  phone: BIZUM_PHONE,
-};
-
 export function getShortOrderId(orderId) {
   return orderId ? orderId.slice(0, 8).toUpperCase() : "SIN-ID";
 }
@@ -15,9 +8,21 @@ export function getBizumConcept(orderId) {
   return `Pedido ${getShortOrderId(orderId)}`;
 }
 
-export function buildWhatsAppOrderUrl({ cart, customer, total, orderId }) {
+function cleanBusinessPhone(phone) {
+  return phone.replace(/\D/g, "");
+}
+
+export function buildWhatsAppOrderUrl({
+  cart,
+  customer,
+  total,
+  orderId,
+  settings,
+}) {
   const shortOrderId = getShortOrderId(orderId);
   const bizumConcept = getBizumConcept(orderId);
+
+  const businessPhone = cleanBusinessPhone(settings.whatsapp_phone);
 
   const orderLines = cart
     .map(
@@ -48,9 +53,9 @@ NOTAS
 ${customer.notes || "Sin notas"}
 
 BIZUM
-Enviaré Bizum de ${formatCurrency(total)} al ${BIZUM_PHONE}
+Enviaré Bizum de ${formatCurrency(total)} al ${settings.bizum_phone}
 Concepto: ${bizumConcept}
 `.trim();
 
-  return `https://wa.me/${BUSINESS_PHONE}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${businessPhone}?text=${encodeURIComponent(message)}`;
 }

@@ -9,6 +9,7 @@ import {
   buildOrderReadyUrl,
   buildPaymentConfirmedUrl,
 } from "../lib/adminWhatsapp";
+import { SettingsManager } from "./SettingsManager";
 
 const STATUS_OPTIONS = [
   "pendiente_bizum",
@@ -59,7 +60,7 @@ const FILTER_OPTIONS = [
   },
 ];
 
-export function AdminPanel({ onBackToShop, onLoggedOut }) {
+export function AdminPanel({ settings, onSettingsUpdated, onBackToShop, onLoggedOut }) {
   const [activeTab, setActiveTab] = useState("orders");
   const [activeStatusFilter, setActiveStatusFilter] = useState("all");
 
@@ -182,9 +183,21 @@ export function AdminPanel({ onBackToShop, onLoggedOut }) {
         >
           Productos
         </button>
+
+        <button
+          type="button"
+          className={activeTab === "settings" ? "admin-tab active" : "admin-tab"}
+          onClick={() => setActiveTab("settings")}
+        >
+          Configuración
+        </button>
       </div>
 
       {activeTab === "products" && <ProductManager />}
+
+      {activeTab === "settings" && (
+        <SettingsManager onSettingsUpdated={onSettingsUpdated} />
+      )}
 
       {activeTab === "orders" && (
         <>
@@ -271,7 +284,7 @@ export function AdminPanel({ onBackToShop, onLoggedOut }) {
 
                   <div className="order-whatsapp-actions">
                     <a
-                      href={buildBizumReminderUrl(order)}
+                      href={buildBizumReminderUrl(order, settings)}
                       target="_blank"
                       className="admin-whatsapp-button"
                     >

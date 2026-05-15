@@ -4,7 +4,7 @@ import { buildWhatsAppOrderUrl } from "../lib/whatsapp";
 import { formatCurrency } from "../lib/formatCurrency";
 import { createOrder } from "../lib/ordersApi";
 
-export function CheckoutForm({ cart, total, onBack, onOrderCreated }) {
+export function CheckoutForm({ cart, total, settings, onBack, onOrderCreated }) {
   const [customer, setCustomer] = useState({
     name: "",
     phone: "",
@@ -42,6 +42,7 @@ export function CheckoutForm({ cart, total, onBack, onOrderCreated }) {
         customer,
         total,
         orderId: savedOrder.id,
+        settings,
       });
 
       onOrderCreated({
@@ -137,8 +138,9 @@ export function CheckoutForm({ cart, total, onBack, onOrderCreated }) {
           <div className="bizum-box">
             <h3>Pago por Bizum</h3>
             <p>
-                Al generar el pedido te daremos un número de pedido y el concepto exacto
-                para hacer Bizum. La comida no se prepara hasta confirmar el pago.
+              Al generar el pedido te daremos un número de pedido y el concepto exacto
+              para hacer Bizum al {settings.bizum_phone}. La comida no se prepara hasta
+              confirmar el pago.
             </p>
           </div>
 

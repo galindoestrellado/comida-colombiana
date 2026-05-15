@@ -1,12 +1,8 @@
 import { MessageCircle, RotateCcw } from "lucide-react";
 import { formatCurrency } from "../lib/formatCurrency";
-import {
-  bizumConfig,
-  getBizumConcept,
-  getShortOrderId,
-} from "../lib/whatsapp";
+import { getBizumConcept, getShortOrderId } from "../lib/whatsapp";
 
-export function OrderSuccess({ order, onNewOrder }) {
+export function OrderSuccess({ order, settings, onNewOrder }) {
   const shortOrderId = getShortOrderId(order.id);
   const bizumConcept = getBizumConcept(order.id);
 
@@ -37,7 +33,7 @@ export function OrderSuccess({ order, onNewOrder }) {
 
           <div className="bizum-final-line">
             <span>Bizum</span>
-            <strong>{bizumConfig.phone}</strong>
+            <strong>{settings.bizum_phone}</strong>
           </div>
 
           <div className="bizum-final-line">
