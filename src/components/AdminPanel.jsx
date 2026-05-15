@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { LogOut, RefreshCw, ShieldCheck } from "lucide-react";
+import { LogOut, MessageCircle, RefreshCw, ShieldCheck } from "lucide-react";
 import { getOrders, updateOrderStatus } from "../lib/adminApi";
 import { signOutAdmin } from "../lib/authApi";
 import { formatCurrency } from "../lib/formatCurrency";
 import { ProductManager } from "./ProductManager";
+import {
+  buildBizumReminderUrl,
+  buildOrderReadyUrl,
+  buildPaymentConfirmedUrl,
+} from "../lib/adminWhatsapp";
 
 const STATUS_OPTIONS = [
   "pendiente_bizum",
@@ -263,6 +268,36 @@ export function AdminPanel({ onBackToShop, onLoggedOut }) {
                     <span>Método: {order.payment_method}</span>
                     <strong>{formatCurrency(Number(order.total))}</strong>
                   </div>
+
+                  <div className="order-whatsapp-actions">
+                    <a
+                      href={buildBizumReminderUrl(order)}
+                      target="_blank"
+                      className="admin-whatsapp-button"
+                    >
+                      <MessageCircle size={16} />
+                      Recordar Bizum
+                    </a>
+
+                    <a
+                      href={buildPaymentConfirmedUrl(order)}
+                      target="_blank"
+                      className="admin-whatsapp-button"
+                    >
+                      <MessageCircle size={16} />
+                      Confirmar pago
+                    </a>
+
+                    <a
+                      href={buildOrderReadyUrl(order)}
+                      target="_blank"
+                      className="admin-whatsapp-button"
+                    >
+                      <MessageCircle size={16} />
+                      Avisar listo
+                    </a>
+                  </div>
+
                 </article>
               ))}
             </div>
