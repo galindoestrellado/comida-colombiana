@@ -1,141 +1,27 @@
 import { useMemo, useState } from "react";
-import { MessageCircle, Send, X } from "lucide-react";
-import { formatCurrency } from "../lib/formatCurrency";
+import { Bot, MessageCircle, Send, X } from "lucide-react";
+import { supabase } from "../lib/supabaseClient";
 
 const QUICK_QUESTIONS = [
+  "¿Qué me recomiendas para 2 personas?",
+  "Quiero algo para 4 personas que no pique mucho",
   "¿Cómo hago un pedido?",
   "¿Cómo se paga?",
   "¿Dónde se recoge?",
-  "¿Hacéis domicilio?",
-  "¿Con cuánta antelación hay que pedir?",
-  "¿Qué platos tenéis?",
-  "¿Hay comida picante?",
-  "¿Cómo contacto?",
+  "¿Qué platos son más típicos?",
 ];
 
-function normalizeText(text) {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-function createBotAnswer(message, settings, products) {
-  const text = normalizeText(message);
-
-  if (
-    text.includes("pedido") ||
-    text.includes("pedir") ||
-    text.includes("comprar") ||
-    text.includes("encargar")
-  ) {
-    return `Para hacer un pedido, elige los platos del menú, pulsa "Continuar pedido", deja tus datos y genera el pedido por WhatsApp. El pedido queda pendiente hasta confirmar el Bizum.`;
-  }
-
-  if (
-    text.includes("pagar") ||
-    text.includes("pago") ||
-    text.includes("bizum") ||
-    text.includes("tarjeta") ||
-    text.includes("efectivo")
-  ) {
-    return `El pago se confirma por Bizum al número ${settings.bizum_phone}. Al crear el pedido verás el importe exacto y el concepto que debes poner. No se prepara comida sin confirmar el pago.`;
-  }
-
-  if (
-    text.includes("recoger") ||
-    text.includes("recogida") ||
-    text.includes("donde") ||
-    text.includes("ubicacion") ||
-    text.includes("direccion")
-  ) {
-    return `La recogida es en ${settings.pickup_location}. Al hacer el pedido eliges fecha y franja horaria de recogida.`;
-  }
-
-  if (
-    text.includes("domicilio") ||
-    text.includes("delivery") ||
-    text.includes("envio") ||
-    text.includes("glovo") ||
-    text.includes("uber") ||
-    text.includes("just")
-  ) {
-    return `De momento trabajamos principalmente con recogida. Así podemos preparar la comida bajo encargo y evitar líos de reparto.`;
-  }
-
-  if (
-    text.includes("antelacion") ||
-    text.includes("antes") ||
-    text.includes("tiempo") ||
-    text.includes("cuando") ||
-    text.includes("hora")
-  ) {
-    return settings.order_notice;
-  }
-
-  if (
-    text.includes("platos") ||
-    text.includes("menu") ||
-    text.includes("teneis") ||
-    text.includes("venden") ||
-    text.includes("comida")
-  ) {
-    const productList = products
-      .slice(0, 8)
-      .map((product) => `- ${product.name}: ${formatCurrency(product.price)}`)
-      .join("\n");
-
-    return `Ahora mismo tenemos estos platos disponibles:\n\n${productList}\n\nPuedes ver el menú completo en la página.`;
-  }
-
-  if (
-    text.includes("picante") ||
-    text.includes("aji") ||
-    text.includes("ají")
-  ) {
-    return `Algunos platos pueden llevar ají o salsas aparte. Puedes poner tus preferencias en las notas del pedido, por ejemplo: "sin picante", "ají aparte" o "sin cilantro".`;
-  }
-
-  if (
-    text.includes("alerg") ||
-    text.includes("gluten") ||
-    text.includes("lactosa") ||
-    text.includes("vegetariano") ||
-    text.includes("vegano")
-  ) {
-    return `Para alérgenos o dietas especiales, indícalo en las notas del pedido y confirma por WhatsApp antes de pagar. Así revisamos bien cada caso.`;
-  }
-
-  if (
-    text.includes("contacto") ||
-    text.includes("telefono") ||
-    text.includes("whatsapp") ||
-    text.includes("hablar")
-  ) {
-    return `Puedes contactar por WhatsApp al ${settings.whatsapp_phone}. También puedes generar un pedido desde la web y enviarlo directamente por WhatsApp.`;
-  }
-
-  if (
-    text.includes("minimo") ||
-    text.includes("pedido minimo") ||
-    text.includes("cantidad")
-  ) {
-    return `De momento no hay pedido mínimo configurado en la web. Si necesitas un pedido grande o familiar, puedes dejarlo en notas o confirmarlo por WhatsApp.`;
-  }
-
-  return `Puedo ayudarte con pedidos, Bizum, recogida, platos disponibles, antelación y contacto. Si tienes una duda concreta, escríbela o pulsa una de las preguntas rápidas.`;
-}
-
-export function ChatBot({ settings, products }) {
+export function ChatBot({ settings }) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
 
   const initialMessages = useMemo(
     () => [
       {
         id: crypto.randomUUID(),
         sender: "bot",
-        text: `Hola 👋 Soy el asistente de ${settings.business_name}. Te puedo ayudar con pedidos, Bizum, recogida y platos disponibles.`,
+        text: `Hola 👋 Soy el asistente de IA de ${settings.business_name}. Puedes preguntarme qué pedir, cómo funciona el Bizum, dónde recoger o qué platos encajan mejor contigo.`,
       },
     ],
     [settings.business_name]
@@ -143,10 +29,10 @@ export function ChatBot({ settings, products }) {
 
   const [messages, setMessages] = useState(initialMessages);
 
-  function sendMessage(messageText) {
+  async function sendMessage(messageText) {
     const trimmedMessage = messageText.trim();
 
-    if (!trimmedMessage) {
+    if (!trimmedMessage || isThinking) {
       return;
     }
 
@@ -156,19 +42,49 @@ export function ChatBot({ settings, products }) {
       text: trimmedMessage,
     };
 
-    const botMessage = {
-      id: crypto.randomUUID(),
-      sender: "bot",
-      text: createBotAnswer(trimmedMessage, settings, products),
-    };
-
-    setMessages((currentMessages) => [
-      ...currentMessages,
-      userMessage,
-      botMessage,
-    ]);
-
+    setMessages((currentMessages) => [...currentMessages, userMessage]);
     setInputMessage("");
+    setIsThinking(true);
+
+    try {
+      const historyForApi = messages.map((message) => ({
+        sender: message.sender,
+        text: message.text,
+      }));
+
+      const { data, error } = await supabase.functions.invoke("chatbot", {
+        body: {
+          message: trimmedMessage,
+          history: historyForApi,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const botMessage = {
+        id: crypto.randomUUID(),
+        sender: "bot",
+        text:
+          data?.answer ||
+          "No he podido responder ahora mismo. Prueba otra vez en unos segundos.",
+      };
+
+      setMessages((currentMessages) => [...currentMessages, botMessage]);
+    } catch (error) {
+      console.error("Error llamando chatbot IA:", error);
+
+      const errorMessage = {
+        id: crypto.randomUUID(),
+        sender: "bot",
+        text: "Ahora mismo no puedo responder con IA. Prueba de nuevo o contacta por WhatsApp.",
+      };
+
+      setMessages((currentMessages) => [...currentMessages, errorMessage]);
+    } finally {
+      setIsThinking(false);
+    }
   }
 
   function handleSubmit(event) {
@@ -184,8 +100,8 @@ export function ChatBot({ settings, products }) {
           type="button"
           onClick={() => setIsOpen(true)}
         >
-          <MessageCircle size={20} />
-          Ayuda
+          <Bot size={20} />
+          IA
         </button>
       )}
 
@@ -193,7 +109,7 @@ export function ChatBot({ settings, products }) {
         <section className="chatbot-panel">
           <header className="chatbot-header">
             <div>
-              <strong>Asistente</strong>
+              <strong>Asistente IA</strong>
               <span>{settings.business_name}</span>
             </div>
 
@@ -220,6 +136,12 @@ export function ChatBot({ settings, products }) {
                 ))}
               </div>
             ))}
+
+            {isThinking && (
+              <div className="chatbot-message bot">
+                Pensando recomendaciones...
+              </div>
+            )}
           </div>
 
           <div className="chatbot-quick-questions">
@@ -227,6 +149,7 @@ export function ChatBot({ settings, products }) {
               <button
                 key={question}
                 type="button"
+                disabled={isThinking}
                 onClick={() => sendMessage(question)}
               >
                 {question}
@@ -238,10 +161,11 @@ export function ChatBot({ settings, products }) {
             <input
               value={inputMessage}
               onChange={(event) => setInputMessage(event.target.value)}
-              placeholder="Escribe tu duda..."
+              placeholder="Ej: quiero algo para 4 personas..."
+              disabled={isThinking}
             />
 
-            <button type="submit">
+            <button type="submit" disabled={isThinking}>
               <Send size={17} />
             </button>
           </form>

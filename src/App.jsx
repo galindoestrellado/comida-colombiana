@@ -297,7 +297,7 @@ function App() {
           }}
         />
       </section>
-      <ChatBot settings={settings} products={products} />
+      <ChatBot settings={settings} />
     </main>
   );
 }
