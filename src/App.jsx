@@ -10,6 +10,7 @@ import { MobileCartBar } from "./components/MobileCartBar";
 import { getCurrentSession } from "./lib/authApi";
 import { getProducts } from "./lib/productsApi";
 import { getBusinessSettings } from "./lib/settingsApi";
+import { ChatBot } from "./components/ChatBot";
 import "./App.css";
 
 function App() {
@@ -296,6 +297,7 @@ function App() {
           }}
         />
       </section>
+      <ChatBot settings={settings} products={products} />
     </main>
   );
 }
