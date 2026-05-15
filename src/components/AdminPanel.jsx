@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LogOut, RefreshCw, ShieldCheck } from "lucide-react";
 import { getOrders, updateOrderStatus } from "../lib/adminApi";
 import { signOutAdmin } from "../lib/authApi";
@@ -23,11 +23,64 @@ const STATUS_LABELS = {
   cancelado: "Cancelado",
 };
 
+const FILTER_OPTIONS = [
+  {
+    value: "all",
+    label: "Todos",
+  },
+  {
+    value: "pendiente_bizum",
+    label: "Pendiente Bizum",
+  },
+  {
+    value: "pagado",
+    label: "Pagado",
+  },
+  {
+    value: "preparando",
+    label: "Preparando",
+  },
+  {
+    value: "listo",
+    label: "Listo",
+  },
+  {
+    value: "entregado",
+    label: "Entregado",
+  },
+  {
+    value: "cancelado",
+    label: "Cancelado",
+  },
+];
+
 export function AdminPanel({ onBackToShop, onLoggedOut }) {
   const [activeTab, setActiveTab] = useState("orders");
+  const [activeStatusFilter, setActiveStatusFilter] = useState("all");
+
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const filteredOrders = useMemo(() => {
+    if (activeStatusFilter === "all") {
+      return orders;
+    }
+
+    return orders.filter((order) => order.status === activeStatusFilter);
+  }, [orders, activeStatusFilter]);
+
+  const orderCounts = useMemo(() => {
+    const counts = {
+      all: orders.length,
+    };
+
+    STATUS_OPTIONS.forEach((status) => {
+      counts[status] = orders.filter((order) => order.status === status).length;
+    });
+
+    return counts;
+  }, [orders]);
 
   async function loadOrders() {
     setIsLoading(true);
@@ -130,6 +183,24 @@ export function AdminPanel({ onBackToShop, onLoggedOut }) {
 
       {activeTab === "orders" && (
         <>
+          <div className="order-filters">
+            {FILTER_OPTIONS.map((filter) => (
+              <button
+                key={filter.value}
+                type="button"
+                className={
+                  activeStatusFilter === filter.value
+                    ? "order-filter active"
+                    : "order-filter"
+                }
+                onClick={() => setActiveStatusFilter(filter.value)}
+              >
+                <span>{filter.label}</span>
+                <strong>{orderCounts[filter.value] || 0}</strong>
+              </button>
+            ))}
+          </div>
+
           {isLoading && <div className="admin-message">Cargando pedidos...</div>}
 
           {errorMessage && <div className="form-error">{errorMessage}</div>}
@@ -138,9 +209,15 @@ export function AdminPanel({ onBackToShop, onLoggedOut }) {
             <div className="admin-message">Todavía no hay pedidos.</div>
           )}
 
-          {!isLoading && orders.length > 0 && (
+          {!isLoading && orders.length > 0 && filteredOrders.length === 0 && (
+            <div className="admin-message">
+              No hay pedidos con el estado seleccionado.
+            </div>
+          )}
+
+          {!isLoading && filteredOrders.length > 0 && (
             <div className="orders-list">
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <article className="order-card" key={order.id}>
                   <div className="order-card__top">
                     <div>
