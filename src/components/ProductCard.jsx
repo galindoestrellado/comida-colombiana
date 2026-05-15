@@ -4,7 +4,16 @@ import { formatCurrency } from "../lib/formatCurrency";
 export function ProductCard({ product, onAdd }) {
   return (
     <article className="product-card">
-      <div className="product-card__image">{product.icon}</div>
+      {product.image_url ? (
+        <img
+          className="product-card__photo"
+          src={product.image_url}
+          alt={product.name}
+          loading="lazy"
+        />
+      ) : (
+        <div className="product-card__image">{product.icon}</div>
+      )}
 
       <div className="product-card__content">
         <div>

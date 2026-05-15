@@ -13,6 +13,7 @@ const EMPTY_PRODUCT = {
   description: "",
   price: 0,
   icon: "🍽️",
+  image_url: "",
   is_available: true,
   display_order: 99,
 };
@@ -82,9 +83,9 @@ export function ProductManager() {
         currentProducts.map((product) =>
           product.id === productId
             ? {
-                ...editingProducts[productId],
-                price: Number(editingProducts[productId].price),
-              }
+              ...editingProducts[productId],
+              price: Number(editingProducts[productId].price),
+            }
             : product
         )
       );
@@ -190,6 +191,17 @@ export function ProductManager() {
               onChange={(event) =>
                 handleNewProductChange("icon", event.target.value)
               }
+            />
+          </label>
+
+          <label>
+            Imagen URL
+            <input
+              value={newProduct.image_url || ""}
+              onChange={(event) =>
+                handleNewProductChange("image_url", event.target.value)
+              }
+              placeholder="https://..."
             />
           </label>
 
@@ -300,6 +312,17 @@ export function ProductManager() {
                     onChange={(event) =>
                       handleFieldChange(product.id, "icon", event.target.value)
                     }
+                  />
+                </label>
+
+                <label>
+                  Imagen URL
+                  <input
+                    value={editedProduct.image_url || ""}
+                    onChange={(event) =>
+                      handleFieldChange(product.id, "image_url", event.target.value)
+                    }
+                    placeholder="https://..."
                   />
                 </label>
 

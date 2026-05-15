@@ -25,6 +25,7 @@ export async function updateProduct(productId, productData) {
       description: productData.description,
       price: Number(productData.price),
       icon: productData.icon,
+      image_url: productData.image_url || null,
       is_available: productData.is_available,
       display_order: Number(productData.display_order),
     })
@@ -44,6 +45,7 @@ export async function createProduct(productData) {
       description: productData.description,
       price: Number(productData.price),
       icon: productData.icon,
+      image_url: productData.image_url || null,
       is_available: productData.is_available,
       display_order: Number(productData.display_order),
     })
