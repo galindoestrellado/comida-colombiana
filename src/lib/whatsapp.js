@@ -1,9 +1,23 @@
 import { formatCurrency } from "./formatCurrency";
 
-const BUSINESS_PHONE = "34611111111";
+const BUSINESS_PHONE = "34645031323";
+const BIZUM_PHONE = "645 031 323";
+
+export const bizumConfig = {
+  phone: BIZUM_PHONE,
+};
+
+export function getShortOrderId(orderId) {
+  return orderId ? orderId.slice(0, 8).toUpperCase() : "SIN-ID";
+}
+
+export function getBizumConcept(orderId) {
+  return `Pedido ${getShortOrderId(orderId)}`;
+}
 
 export function buildWhatsAppOrderUrl({ cart, customer, total, orderId }) {
-  const shortOrderId = orderId ? orderId.slice(0, 8).toUpperCase() : "SIN-ID";
+  const shortOrderId = getShortOrderId(orderId);
+  const bizumConcept = getBizumConcept(orderId);
 
   const orderLines = cart
     .map(
@@ -33,8 +47,9 @@ TOTAL: ${formatCurrency(total)}
 NOTAS
 ${customer.notes || "Sin notas"}
 
-PAGO
-Haré Bizum para confirmar el pedido.
+BIZUM
+Enviaré Bizum de ${formatCurrency(total)} al ${BIZUM_PHONE}
+Concepto: ${bizumConcept}
 `.trim();
 
   return `https://wa.me/${BUSINESS_PHONE}?text=${encodeURIComponent(message)}`;

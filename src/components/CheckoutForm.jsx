@@ -137,8 +137,8 @@ export function CheckoutForm({ cart, total, onBack, onOrderCreated }) {
           <div className="bizum-box">
             <h3>Pago por Bizum</h3>
             <p>
-              Para confirmar el pedido, envía Bizum después de mandar el resumen
-              por WhatsApp. No se prepara comida sin confirmación de pago.
+                Al generar el pedido te daremos un número de pedido y el concepto exacto
+                para hacer Bizum. La comida no se prepara hasta confirmar el pago.
             </p>
           </div>
 

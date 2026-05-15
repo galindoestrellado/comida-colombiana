@@ -6,6 +6,7 @@ import { CheckoutForm } from "./components/CheckoutForm";
 import { OrderSuccess } from "./components/OrderSuccess";
 import { AdminPanel } from "./components/AdminPanel";
 import { AdminLogin } from "./components/AdminLogin";
+import { MobileCartBar } from "./components/MobileCartBar";
 import { getCurrentSession } from "./lib/authApi";
 import { getProducts } from "./lib/productsApi";
 import "./App.css";
@@ -236,6 +237,15 @@ function App() {
           onDecrease={decreaseQuantity}
           onClear={clearCart}
           onGoToCheckout={() => setStep("checkout")}
+        />
+        <MobileCartBar
+          cart={cart}
+          total={total}
+          onClick={() => {
+            document
+              .querySelector(".cart-panel")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
         />
       </section>
     </main>
